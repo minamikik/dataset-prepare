@@ -23,8 +23,8 @@ logging.basicConfig(
     )
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--upscale", type = str, help="source directory")
-parser.add_argument("--crop", type = str, help="croped image output directory")
+parser.add_argument("--upscale", type = str, help="Choose the directory to upscale")
+parser.add_argument("--crop", type = str, help="Choose the directory to output cropped images")
 parser.add_argument("--caption", action='store_true', help="caption only")
 parser.add_argument("--basesize", type = int, default = 1024, help="base size")
 parser.add_argument("--format", type = str, default = "png", help="jpg or png")
@@ -70,7 +70,6 @@ class PrepareProcess:
         logging.info(f'{job.name}: Upscaling... {img.shape}')
         time_sta = time.time()
         esrgan_img = self.esrgan.upscale(img)
-#        new_img = esrgan_img
         awinir_img = self.swinir.upscale(img)
         new_img = cv2.addWeighted(esrgan_img, 0.5, awinir_img, 0.5, 0)
 
@@ -162,11 +161,10 @@ def main(target):
                 output_dir = osp.join(job.output_dir, f'{w}x{h}')
                 output_filepath = f'{output_dir}\\{job.name}.{args.format}'
                 if not osp.exists(output_filepath) or args.force:
-    #                croped_img = aspect_crop(upscaled_img, new_size)
-                    croped_img = weighted_crop(upscaled_img, h, w, 0.8, 0.0, 0.5)
+                    cropped_img = weighted_crop(upscaled_img, h, w, 0.8, 0.0, 0.5)
                     if not osp.exists(output_dir):
                         os.makedirs(output_dir)
-                    cv2.imwrite(output_filepath, croped_img)
+                    cv2.imwrite(output_filepath, cropped_img)
                     logging.info(f'{job.name}: {output_filepath} Saved.')
                 else:
                     logging.info(f'{job.name}: {output_filepath} already exists. Skip.')
