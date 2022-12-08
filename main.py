@@ -23,12 +23,12 @@ logging.basicConfig(
     )
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--upscale", type = str, help="Choose the directory to upscale")
-parser.add_argument("--crop", type = str, help="Choose the directory to output cropped images")
-parser.add_argument("--caption", action='store_true', help="caption only")
-parser.add_argument("--basesize", type = int, default = 1024, help="base size")
+parser.add_argument("--upscale", type = str, help="Upscale and caption images in the selected directory")
+parser.add_argument("--crop", type = str, help="Crop images in the directory selected by upscaling and export them to the specified directory")
+parser.add_argument("--basesize", type = int, default = 1024, help="Specify base size as integer")
 parser.add_argument("--format", type = str, default = "png", help="jpg or png")
-parser.add_argument("--force", action='store_true', help="force update")
+parser.add_argument("--force", action='store_true', help="Force all output")
+parser.add_argument("--caption", action='store_true', help="Force caption output")
 parser.add_argument("--age", type = int, help="Age fix target")
 parser.add_argument("--no_person", action='store_true', help="No person")
 
@@ -144,7 +144,7 @@ def main(target):
             upscaled_img = cv2.imread(output_filepath)
             logging.info(f'{job.name}: {output_filepath} already exists. Skip.')
         caption_filename = f'{output_dir}\\{job.name}.txt'
-        if not osp.exists(caption_filename) or args.force:
+        if not osp.exists(caption_filename) or args.force or args.caption:
             caption = purepare.captionize(img=upscaled_img, job=job)
             with open(caption_filename, 'w') as f:
                 f.write(caption)
