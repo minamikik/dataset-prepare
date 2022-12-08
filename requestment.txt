@@ -1,0 +1,9 @@
+realesrgan
+gfpgan
+numpy
+Pillow
+opencv-python
+timm==0.4.12 
+transformers==4.21.3 
+fairscale==0.4.4 
+pycocoevalcap
