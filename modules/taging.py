@@ -33,7 +33,7 @@ class BLIPer:
             logging.info(f'BLIPer: Loading model from {model_path}')
         else:
             os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth'
+            url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth'
             logging.info(f'BLIPer: Downloading model {model_path}')
             r = requests.get(url, allow_redirects=True)
             open(model_path, 'wb').write(r.content)
