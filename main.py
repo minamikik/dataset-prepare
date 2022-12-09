@@ -150,7 +150,7 @@ def main():
                 os.makedirs(output_dir)
             if img.shape[0] >= 2048 or img.shape[1] >= 2048:
                 upscaled_img = img
-                logging.info(f'{job.name}: The original file is large enough. skip upscale {lap.lap()}')
+                logging.info(f'{job.name}: The original file is large enough. skip upscale {upscaled_img.shape} {lap.lap()}')
             else:
                 logging.info(f'{job.name}: Upscaling from {img.shape} {lap.lap()}')
                 upscaled_img = purepare.upscale(img, job)
