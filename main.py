@@ -45,7 +45,6 @@ else:
     destination_dir = target_path + upscaled_dir
 
 def detect_image_files(path):
-    logging.info(f'Detect image: Scanning {path}')
     target_files = []
     for current_dir, sub_dirs, file_list in os.walk(path):
         if not upscaled_dir in current_dir:
@@ -54,7 +53,6 @@ def detect_image_files(path):
                     base_file_name = osp.splitext(file)[0]
                     png_file_name = base_file_name + '.png'
                     target_files.append(osp.join(current_dir, file))
-    logging.info(f'Detect image: Found {len(target_files)} images')
     return target_files
 
 
@@ -67,20 +65,12 @@ class PrepareProcess:
         self.ager = AgePredictor()
 
     def upscale(self, img, job):
-        logging.info(f'{job.name}: Upscaling... {img.shape}')
-        time_sta = time.time()
         esrgan_img = self.esrgan.upscale(img)
         awinir_img = self.swinir.upscale(img)
         new_img = cv2.addWeighted(esrgan_img, 0.5, awinir_img, 0.5, 0)
-
-        time_end = time.time()
-        time_cost = time_end - time_sta
-        logging.info(f'{job.name}: Upscale done. {new_img.shape} / {time_cost:.2f}s')
         return new_img
 
-    def captionize  (self, img, job):
-        time_sta = time.time()
-
+    def generate_caption(self, img, job):
         current_dir = osp.dirname(job.img_filepath).split('\\')
         current_dir_name = current_dir[len(current_dir)-1]
 
@@ -99,10 +89,6 @@ class PrepareProcess:
             new_caption = f'{current_dir_name}, {age} years old, {blip_caption}, {booru_caption}'
         else:
             new_caption = f'{current_dir_name}, {blip_caption}, {booru_caption}'
-
-        time_end = time.time()
-        time_cost = time_end - time_sta
-        logging.info(f'{job.name}: Captionize done. / {time_cost:.2f}s')
         return new_caption
       
 class Job:
@@ -112,45 +98,78 @@ class Job:
         self.size = size
         self.output_dir = destination_dir
 
-def main(target):
+
+class StopWatch:
+    def __init__(self):
+        self.start_time = time.time()
+        self.lap_time = self.start_time
+        self.total_time = self.start_time
+
+    def lap(self):
+        now = time.time()
+        self.lap_time = now - self.total_time
+        self.total_time = self.total_time + self.lap_time
+        total_result = self.total_time - self.start_time
+        return f'({round(self.lap_time, 2)}sec/{round(total_result, 2)}sec)'
+
+    def total(self):
+        now = time.time()
+        self.lap_time = now - self.total_time
+        self.total_time = self.total_time + self.lap_time
+        total_result = self.total_time - self.start_time
+        return f'({round(total_result, 2)}sec)'
+
+
+def main():
+    main_lap = StopWatch()
+    logging.info(f'Initializing: {main_lap.lap()}')
     purepare = PrepareProcess()
+    logging.info(f'Initialized: {main_lap.lap()}')
+    logging.info(f'Detect image: Scanning {target_path} {main_lap.lap()}')
+    target = detect_image_files(target_path)
+    logging.info(f'Detect image: Found {len(target)} images {main_lap.lap()}')
+
 
     for img_filepath in target:
-        time_sta = time.time()
-        logging.info('-----------------------------------------------------------------')
+        lap = StopWatch()
+        print('-----------------------------------------------------------------')
         # Create job
         job = Job(img_filepath=img_filepath, size=args.basesize)
-        logging.info(f'{job.name}: Processing {job.img_filepath}')
+        logging.info(f'{job.name}: Proccessing {job.img_filepath} {lap.lap()}')
 
         # Upscale
         output_dir = osp.join(osp.dirname(job.img_filepath), upscaled_dir)
         output_filepath = f'{output_dir}\\{job.name}.{args.format}'
         if not osp.exists(output_filepath) or args.force:
             img = cv2.imread(job.img_filepath)
-            logging.info(f'{job.name}: Read image {img.shape}')
             if not osp.exists(output_dir):
                 os.makedirs(output_dir)
             if img.shape[0] >= 2048 or img.shape[1] >= 2048:
                 upscaled_img = img
-                logging.info(f'{job.name}: The original file is large enough. skip upscale')
+                logging.info(f'{job.name}: The original file is large enough. skip upscale {lap.lap()}')
             else:
+                logging.info(f'{job.name}: Upscaling... {img.shape} {lap.lap()}')
                 upscaled_img = purepare.upscale(img, job)
             if not osp.exists(output_dir):
                 os.makedirs(output_dir)
             upscaled_img = aspect_crop(upscaled_img, 2048)
+            logging.info(f'{job.name}: Crop to {upscaled_img.shape} {lap.lap()}')
             cv2.imwrite(f'{output_dir}\\{job.name}.{args.format}', upscaled_img)
-            logging.info(f'{job.name}: {output_filepath} Saved.')
+            logging.info(f'{job.name}: Save to {osp.basename(output_filepath)} {lap.lap()}')
         else:
             upscaled_img = cv2.imread(output_filepath)
-            logging.info(f'{job.name}: {output_filepath} already exists. Skip.')
+            logging.info(f'{job.name}: {osp.basename(output_filepath)} already exists. Skip. {lap.lap()}')
         caption_filename = f'{output_dir}\\{job.name}.txt'
         if not osp.exists(caption_filename) or args.force or args.caption:
-            caption = purepare.captionize(img=upscaled_img, job=job)
+            caption = purepare.generate_caption(img=upscaled_img, job=job)
+            logging.info(f'{job.name}: Caption generated {lap.lap()}')
             with open(caption_filename, 'w') as f:
                 f.write(caption)
+                logging.info(f'{job.name}: Save to {osp.basename(caption_filename)} {lap.lap()}')
         else:
             with open(caption_filename, 'r') as f:
                 caption = f.read()
+                logging.info(f'{job.name}: {osp.basename(caption_filename)} already exists. Reuse this. {lap.lap()}')
 
         # Cropping
         if args.crop:
@@ -165,51 +184,46 @@ def main(target):
                     if not osp.exists(output_dir):
                         os.makedirs(output_dir)
                     cv2.imwrite(output_filepath, cropped_img)
-                    logging.info(f'{job.name}: {output_filepath} Saved.')
+                    logging.info(f'{job.name}: Save to {osp.basename(output_filepath)} {lap.lap()}')
                 else:
-                    logging.info(f'{job.name}: {output_filepath} already exists. Skip.')
+                    logging.info(f'{job.name}: {osp.basename(output_filepath)} already exists. Skip. {lap.lap()}')
                 caption_filename = f'{output_dir}\\{job.name}.txt'
                 if not osp.exists(caption_filename) or args.force:
                     with open(caption_filename, 'w') as f:
                         f.write(caption)
-                    logging.info(f'{job.name}: {caption_filename} Saved.')
+                    logging.info(f'{job.name}: Save to {osp.basename(caption_filename)}')
                 else:
-                    logging.info(f'{job.name}: {caption_filename} already exists. Skip.')
+                    logging.info(f'{job.name}: {osp.basename(caption_filename)} already exists. Skip. {lap.lap()}')
 
                 # square crop
                 h, w = round(new_size), round(new_size)
                 output_dir = osp.join(job.output_dir, f'{w}x{h}')
                 output_filepath = f'{output_dir}\\{job.name}.{args.format}'
                 if not osp.exists(output_filepath) or args.force:
-                    #square_image = square_crop(upscaled_img, new_size)
                     square_image = weighted_crop(upscaled_img, new_size, new_size, 1.0, 0.0, 40.0)
+                    logging.info(f'{job.name}: Crop to {square_image.shape} {lap.lap()}')
                     if not osp.exists(output_dir):
                         os.makedirs(output_dir)
                     cv2.imwrite(f'{output_dir}\\{job.name}.{args.format}', square_image)
-                    logging.info(f'{job.name}: {output_filepath} Saved.')
+                    logging.info(f'{job.name}: Save to {osp.basename(output_filepath)} {lap.lap()}')
                 else:
-                    logging.info(f'{job.name}: {output_filepath} already exists. Skip.')
+                    logging.info(f'{job.name}: {osp.basename(output_filepath)} already exists. Skip. {lap.lap()}')
                 caption_filename = f'{output_dir}\\{job.name}.txt'
                 if not osp.exists(caption_filename) or args.force:
                     with open(caption_filename, 'w') as f:
                         f.write(caption)
-                    logging.info(f'{job.name}: {caption_filename} Saved.')
+                    logging.info(f'{job.name}: Save to {osp.basename(caption_filename)} {lap.lap()}')
                 else:
-                    logging.info(f'{job.name}: {caption_filename} already exists. Skip.')
+                    logging.info(f'{job.name}: {osp.basename(caption_filename)} already exists. Skip. {lap.lap()}')
 
-        time_end = time.time()
-        time_cost = time_end - time_sta
-        logging.info(f'caption: {caption}')
-        logging.info(f'{job.name}: Job done. / {time_cost:.2f}s')
+        logging.info(f'{job.name}: Job done. {lap.total()}')
+        print(f'{caption}')
         del job
+        
+    logging.info(f'All done. / {main_lap.total()}')
 
 
 
 if __name__ == '__main__':
-    time_sta = time.time()
-    target = detect_image_files(target_path)
-    main(target)
-    time_end = time.time()
-    time_cost = time_end - time_sta
-    logging.info('All done. / {time_cost:.2f}s')
+    main()
     pass
