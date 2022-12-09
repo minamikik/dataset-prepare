@@ -130,26 +130,28 @@ def main():
     logging.info(f'Detect image: Found {len(target)} images {main_lap.lap()}')
 
 
-    for img_filepath in target:
+    for index, img_filepath in enumerate(target):
         lap = StopWatch()
         print('-----------------------------------------------------------------')
         # Create job
         job = Job(img_filepath=img_filepath, size=args.basesize)
-        logging.info(f'{job.name}: Proccessing {job.img_filepath} {lap.lap()}')
+        logging.info(f'{job.name}: Proccessing {job.name} ({index + 1}/{len(target)})')
 
         # Upscale
         output_dir = osp.join(osp.dirname(job.img_filepath), upscaled_dir)
         output_filepath = f'{output_dir}\\{job.name}.{args.format}'
         if not osp.exists(output_filepath) or args.force:
             img = cv2.imread(job.img_filepath)
+            logging.info(f'{job.name}: Read image {job.img_filepath} {lap.lap()}')
             if not osp.exists(output_dir):
                 os.makedirs(output_dir)
             if img.shape[0] >= 2048 or img.shape[1] >= 2048:
                 upscaled_img = img
                 logging.info(f'{job.name}: The original file is large enough. skip upscale {lap.lap()}')
             else:
-                logging.info(f'{job.name}: Upscaling... {img.shape} {lap.lap()}')
+                logging.info(f'{job.name}: Upscaling from {img.shape} {lap.lap()}')
                 upscaled_img = purepare.upscale(img, job)
+                logging.info(f'{job.name}: Upscaled to {upscaled_img.shape} {lap.lap()}')
             if not osp.exists(output_dir):
                 os.makedirs(output_dir)
             upscaled_img = aspect_crop(upscaled_img, 2048)
