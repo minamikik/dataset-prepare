@@ -34,9 +34,9 @@ def aspect_crop(img, base_size):
     y = scaled_img.shape[0]/2 - crop_h/2
 #    logging.info(f'x: {x}, y: {y}')
 
-    croped_img = scaled_img[int(y):int(y+crop_h), int(x):int(x+crop_w)]
+    cropped_img = scaled_img[int(y):int(y+crop_h), int(x):int(x+crop_w)]
 #    logging.info(f'Cropped image shape: {croped_img.shape}')
-    return croped_img
+    return cropped_img
 
 def center_crop(img, base_size):
     crop_h, crop_w, scale_h, scale_w = aspect_calc(img, base_size)
@@ -44,13 +44,13 @@ def center_crop(img, base_size):
     scaled_img = cv2.resize(img, dsize=(scale_w, scale_h), interpolation=cv2.INTER_AREA)
 #    logging.info(f'Scaled image shape: {scaled_img.shape}')
 
-    x = scaled_img.shape[1]/2 - crop_w/2
-    y = scaled_img.shape[0]/2 - crop_h/2
-#    logging.info(f'x: {x}, y: {y}')
+    center = scaled_img.shape
+    x = center[1]/2 - base_size/2
+    y = center[0]/2 - base_size/2
 
-    croped_img = scaled_img[int(y):int(y+base_size), int(x):int(x+base_size)]
+    cropped_img = scaled_img[int(y):int(y+base_size), int(x):int(x+base_size)]
 #    logging.info(f'Cropped image shape: {croped_img.shape}')
-    return croped_img
+    return cropped_img
 
 def weighted_crop(img, height: int, width: int, corner_points_weight: float = 0.0, entropy_points_weight: float= 0.3, face_points_weight: float = 0.5):
     img = opencv2pil(img)
