@@ -98,7 +98,7 @@ class DeepDanbooru:
         logging.info(f'DeepDanbooru: Model loaded')
 
     def get_tag(self, img):
-        threshold = 0.6
+        threshold = 0.7
         use_spaces = True
         use_escape = True
         alpha_sort = True
