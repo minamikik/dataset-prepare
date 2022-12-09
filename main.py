@@ -4,7 +4,6 @@ import glob
 import cv2
 import numpy as np
 from PIL import Image
-from pytorch_memlab import profile
 import time
 import math
 import threading
@@ -33,6 +32,10 @@ parser.add_argument("--age", type = int, help="Age fix target")
 parser.add_argument("--no_person", action='store_true', help="No person")
 
 args = parser.parse_args()
+
+if not args.upscale:
+    logging.info('No uppsclae target directory specified')
+    exit()
 
 target_path = args.upscale
 if target_path[-1] == '/':

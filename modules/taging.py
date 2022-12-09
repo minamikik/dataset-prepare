@@ -8,7 +8,7 @@ from torch import autocast
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
-from src.blip.models.blip import blip_decoder
+from modules.blip_model import blip_decoder
 from modules.deepbooru_model import DeepDanbooruModel
 from modules.image_proccess import aspect_crop, weighted_crop, frame_crop, opencv2pil, pil2opencv
 import logging
