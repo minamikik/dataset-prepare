@@ -185,7 +185,10 @@ def main():
                 output_dir = osp.join(job.output_dir, f'{w}x{h}')
                 output_filepath = f'{output_dir}\\{job.name}.{args.format}'
                 if not osp.exists(output_filepath) or args.force:
-                    cropped_img = weighted_crop(upscaled_img, h, w, 0.8, 0.0, 0.5)
+                    if not args.no_person:
+                        cropped_img = weighted_crop(upscaled_img, h, w, 0.8, 0.0, 0.5)
+                    else:
+                        cropped_img = aspect_crop(upscaled_img, new_size)
                     if not osp.exists(output_dir):
                         os.makedirs(output_dir)
                     cv2.imwrite(output_filepath, cropped_img)
@@ -205,7 +208,10 @@ def main():
                 output_dir = osp.join(job.output_dir, f'{w}x{h}')
                 output_filepath = f'{output_dir}\\{job.name}.{args.format}'
                 if not osp.exists(output_filepath) or args.force:
-                    square_image = weighted_crop(upscaled_img, new_size, new_size, 1.0, 0.0, 40.0)
+                    if args.no_person:
+                        square_image = weighted_crop(upscaled_img, new_size, new_size, 1.0, 0.0, 40.0)
+                    else:
+                        square_image = aspect_crop(upscaled_img, new_size)
                     logging.info(f'{job.name}: Crop to {square_image.shape} {lap.lap()}')
                     if not osp.exists(output_dir):
                         os.makedirs(output_dir)
