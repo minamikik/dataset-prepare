@@ -11,7 +11,7 @@ from modules.upscaler import ESRGANer, SwinIRer
 from modules.taging import BLIPer, DeepDanbooru
 from modules.age import AgePredictor
 from modules.autocrop import crop_image, Settings
-from modules.image_proccess import aspect_calc, aspect_crop, weighted_crop, frame_crop, opencv2pil, pil2opencv
+from modules.image_proccess import aspect_calc, aspect_crop, center_crop, weighted_crop, frame_crop, opencv2pil, pil2opencv
 import argparse
 import logging
 
@@ -208,10 +208,10 @@ def main():
                 output_dir = osp.join(job.output_dir, f'{w}x{h}')
                 output_filepath = f'{output_dir}\\{job.name}.{args.format}'
                 if not osp.exists(output_filepath) or args.force:
-                    if args.no_person:
+                    if not args.no_person:
                         square_image = weighted_crop(upscaled_img, new_size, new_size, 1.0, 0.0, 40.0)
                     else:
-                        square_image = aspect_crop(upscaled_img, new_size)
+                        square_image = center_crop(upscaled_img, new_size)
                     logging.info(f'{job.name}: Crop to {square_image.shape} {lap.lap()}')
                     if not osp.exists(output_dir):
                         os.makedirs(output_dir)
@@ -227,7 +227,7 @@ def main():
                 else:
                     logging.info(f'{job.name}: {osp.basename(caption_filename)} already exists. Skip. {lap.lap()}')
 
-        logging.info(f'{job.name}: Job done. {lap.total()}')
+        logging.info(f'{job.name}: Job done. ({index + 1}/{len(target)}) {lap.total()}')
         print(f'{caption}')
         del job
         
