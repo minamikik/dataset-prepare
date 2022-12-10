@@ -150,13 +150,13 @@ def main():
 
             # Lock
             lock_file = f'{output_dir}\\{job.name}.lock'
-            if not osp.exists(output_dir):
-                os.makedirs(output_dir)
             if osp.exists(lock_file):
                 with open(lock_file, 'r') as f:
                     lock_owner = f.read()
                     logging.info(f'{job.name}: Locked by {lock_owner} ({index + 1}/{len(target)} {lap.lap()}')
                 continue
+            if not osp.exists(output_dir):
+                os.makedirs(output_dir)
             with open(lock_file, 'w') as f:
                 f.write(f'{host}')
                 logging.info(f'{job.name}: Lock to {osp.basename(lock_file)} {lap.lap()}')
