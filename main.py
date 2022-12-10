@@ -155,6 +155,8 @@ def main():
                     lock_owner = f.read()
                     logging.info(f'{job.name}: Locked by {lock_owner} ({index + 1}/{len(target)} {lap.lap()}')
                 continue
+            if not osp.exists(output_dir):
+                os.makedirs(output_dir)
             with open(lock_file, 'w') as f:
                 f.write(f'{host}')
                 logging.info(f'{job.name}: Lock to {osp.basename(lock_file)} {lap.lap()}')
@@ -163,8 +165,6 @@ def main():
             if not osp.exists(output_file) or args.force:
                 img = cv2.imread(job.img_filepath)
                 logging.info(f'{job.name}: Read image {job.img_filepath} {lap.lap()}')
-                if not osp.exists(output_dir):
-                    os.makedirs(output_dir)
                 if img.shape[0] >= 2048 or img.shape[1] >= 2048:
                     upscaled_img = img
                     logging.info(f'{job.name}: The original file is large enough. skip upscale {upscaled_img.shape} {lap.lap()}')
