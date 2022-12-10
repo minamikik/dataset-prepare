@@ -254,12 +254,13 @@ def main():
             logging.info(f'KeyboardInterrupt: {job.name} {lap.total()}')
             os.remove(lock_file)
             logging.info(f'Lock file removed: {lock_file}')
-            break
+            raise SystemExit('KeyboardInterrupt')
+            
         except Exception as e:
             logging.exception(f'{job.name} {lap.total()}')
             os.remove(lock_file)
             logging.info(f'Lock file removed: {lock_file}')
-            break
+            raise SystemExit(f'Exception: {e}')
         
     logging.info(f'All done. / {main_lap.total()}')
 
