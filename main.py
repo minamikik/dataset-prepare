@@ -151,6 +151,9 @@ def main():
             # Lock
             lock_file = f'{output_dir}\\{job.name}.lock'
             if osp.exists(lock_file):
+                with open(lock_file, 'r') as f:
+                    lock_owner = f.read()
+                    logging.info(f'{job.name}: Locked by {lock_owner} ({index + 1}/{len(target)} {lap.lap()}')
                 continue
             with open(lock_file, 'w') as f:
                 f.write(f'{host}')
@@ -250,10 +253,12 @@ def main():
         except KeyboardInterrupt:
             logging.info(f'KeyboardInterrupt: {job.name} {lap.total()}')
             os.remove(lock_file)
+            logging.info(f'Lock file removed: {lock_file}')
             break
         except Exception as e:
             logging.exception(f'{job.name} {lap.total()}')
             os.remove(lock_file)
+            logging.info(f'Lock file removed: {lock_file}')
             break
         
     logging.info(f'All done. / {main_lap.total()}')
