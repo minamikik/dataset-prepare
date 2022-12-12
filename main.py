@@ -142,6 +142,9 @@ def main():
             print('-----------------------------------------------------------------')
             # Create job
             job = Job(img_filepath=img_filepath, size=args.basesize)
+            if not osp.exists(job.img_filepath):
+                logging.info(f'{job.name}: File not found ({index + 1}/{len(target)})')
+                continue
             logging.info(f'{job.name}: Proccessing {job.name} ({index + 1}/{len(target)})')
 
             # Specify output file
