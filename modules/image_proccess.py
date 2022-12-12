@@ -10,6 +10,7 @@ def aspect_calc(img, basesize):
     aspect = w / h
     crop_margin = 16
     if 1 <= aspect:
+        np.clip(aspect, 1, 1.5)
 #        logging.info(f'Aspect: {aspect:.2f}')
         scale_h = basesize + crop_margin
         crop_h = basesize
@@ -17,6 +18,7 @@ def aspect_calc(img, basesize):
         crop_w = math.floor((scale_w - crop_margin) / 256) * 256
     else:
 #        logging.info('Aspect is less than 1')
+        np.clip(aspect, 0.6666667, 1)
         scale_w = basesize + crop_margin
         crop_w = basesize
         scale_h = round(basesize / aspect) + crop_margin
