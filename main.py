@@ -34,6 +34,8 @@ parser.add_argument("--export", type = str, help="Crop images and create concept
 parser.add_argument("--upscale", action='store_true', help="Upscale images")
 parser.add_argument("--smooth", action='store_true', help="Using swinir")
 parser.add_argument("--basesize", type = int, default = 1024, help="Specify base size as integer")
+parser.add_argument("--crop_size", type = int, default = 768, help="Specify crop size as integer")
+
 
 parser.add_argument("--crop", action='store_true', help="Crop images")
 parser.add_argument("--square", action='store_true', help="Crop to square")
@@ -106,8 +108,11 @@ def detect_image_files(path):
     count = 0
     for root, dirs, files in os.walk(path):
         if not upscaled_dir_name in root:
-            if args.random:
-                files = random.suffule(files)
+            logging.info(f'files: {files}')
+            if args.random and files != []:
+                logging.info('Random choice')
+                random.shuffle(files)
+                logging.info(f'files: {files}')
             for file in files:
                 if args.limit and count > args.limit -1:
                     count = 0
@@ -293,56 +298,55 @@ def main():
                 else:
                     continue
 
-                for i in range(3):
-                    if not args.square:
-                        # aspect crop
-                        new_size = round(job.size * ((4 - i) / 4))
-                        h, w, _1, _2 = aspect_calc(upscaled_img, new_size)
-                        output_dir = osp.join(job.output_dir, f'{w}x{h}')
-                        output_file = f'{output_dir}\\{job.name}.{args.format}'
-                        if not osp.exists(output_file) or args.force:
-                            if not args.no_person:
-                                cropped_img = weighted_crop(upscaled_img, h, w, 0.8, 0.0, 0.5)
-                            else:
-                                cropped_img = aspect_crop(upscaled_img, new_size)
-                            if not osp.exists(output_dir):
-                                os.makedirs(output_dir)
-                            cv2.imwrite(output_file, cropped_img)
-                            logging.info(f'{job.name}: Save to {osp.basename(output_file)} {lap.lap()}')
+                if not args.square:
+                    # aspect crop
+                    new_size = args.crop_size
+                    h, w, _1, _2 = aspect_calc(upscaled_img, new_size)
+                    output_dir = osp.join(job.output_dir, f'{w}x{h}')
+                    output_file = f'{output_dir}\\{job.name}.{args.format}'
+                    if not osp.exists(output_file) or args.force:
+                        if not args.no_person:
+                            cropped_img = weighted_crop(upscaled_img, h, w, 0.8, 0.0, 0.5)
                         else:
-                            logging.info(f'{job.name}: {osp.basename(output_file)} already exists. Skip. {lap.lap()}')
-                        caption_file = f'{output_dir}\\{job.name}.txt'
-                        if not osp.exists(caption_file) or args.force:
-                            with open(caption_file, 'w') as f:
-                                f.write(caption)
-                            logging.info(f'{job.name}: Save to {osp.basename(caption_file)}')
-                        else:
-                            logging.info(f'{job.name}: {osp.basename(caption_file)} already exists. Skip. {lap.lap()}')
-
+                            cropped_img = aspect_crop(upscaled_img, new_size)
+                        if not osp.exists(output_dir):
+                            os.makedirs(output_dir)
+                        cv2.imwrite(output_file, cropped_img)
+                        logging.info(f'{job.name}: Save to {osp.basename(output_file)} {lap.lap()}')
                     else:
-                        # square crop
-                        h, w = round(new_size), round(new_size)
-                        output_dir = osp.join(job.output_dir, f'{w}x{h}')
-                        output_file = f'{output_dir}\\{job.name}.{args.format}'
-                        if not osp.exists(output_file) or args.force:
-                            if not args.no_person:
-                                square_image = weighted_crop(upscaled_img, new_size, new_size, 1.0, 0.0, 40.0)
-                            else:
-                                square_image = center_crop(upscaled_img, new_size)
-                            logging.info(f'{job.name}: Crop to {square_image.shape} {lap.lap()}')
-                            if not osp.exists(output_dir):
-                                os.makedirs(output_dir)
-                            cv2.imwrite(f'{output_dir}\\{job.name}.{args.format}', square_image)
-                            logging.info(f'{job.name}: Save to {osp.basename(output_file)} {lap.lap()}')
+                        logging.info(f'{job.name}: {osp.basename(output_file)} already exists. Skip. {lap.lap()}')
+                    caption_file = f'{output_dir}\\{job.name}.txt'
+                    if not osp.exists(caption_file) or args.force:
+                        with open(caption_file, 'w') as f:
+                            f.write(caption)
+                        logging.info(f'{job.name}: Save to {osp.basename(caption_file)}')
+                    else:
+                        logging.info(f'{job.name}: {osp.basename(caption_file)} already exists. Skip. {lap.lap()}')
+
+                else:
+                    # square crop
+                    h, w = round(new_size), round(new_size)
+                    output_dir = osp.join(job.output_dir, f'{w}x{h}')
+                    output_file = f'{output_dir}\\{job.name}.{args.format}'
+                    if not osp.exists(output_file) or args.force:
+                        if not args.no_person:
+                            square_image = weighted_crop(upscaled_img, new_size, new_size, 1.0, 0.0, 40.0)
                         else:
-                            logging.info(f'{job.name}: {osp.basename(output_file)} already exists. Skip. {lap.lap()}')
-                        caption_file = f'{output_dir}\\{job.name}.txt'
-                        if not osp.exists(caption_file) or args.force:
-                            with open(caption_file, 'w') as f:
-                                f.write(caption)
-                            logging.info(f'{job.name}: Save to {osp.basename(caption_file)} {lap.lap()}')
-                        else:
-                            logging.info(f'{job.name}: {osp.basename(caption_file)} already exists. Skip. {lap.lap()}')
+                            square_image = center_crop(upscaled_img, new_size)
+                        logging.info(f'{job.name}: Crop to {square_image.shape} {lap.lap()}')
+                        if not osp.exists(output_dir):
+                            os.makedirs(output_dir)
+                        cv2.imwrite(f'{output_dir}\\{job.name}.{args.format}', square_image)
+                        logging.info(f'{job.name}: Save to {osp.basename(output_file)} {lap.lap()}')
+                    else:
+                        logging.info(f'{job.name}: {osp.basename(output_file)} already exists. Skip. {lap.lap()}')
+                    caption_file = f'{output_dir}\\{job.name}.txt'
+                    if not osp.exists(caption_file) or args.force:
+                        with open(caption_file, 'w') as f:
+                            f.write(caption)
+                        logging.info(f'{job.name}: Save to {osp.basename(caption_file)} {lap.lap()}')
+                    else:
+                        logging.info(f'{job.name}: {osp.basename(caption_file)} already exists. Skip. {lap.lap()}')
 
             logging.info(f'{job.name}: Job done. ({index + 1}/{len(target)}) {lap.total()}')
 
@@ -363,8 +367,9 @@ def main():
             raise SystemExit(f'Exception: {e}')
 
     if args.concepts:
-        print(f'Create concepts list: {args.export} {args.class_token} {args.instance_token}')
-        concepts_list = prepare.create_concepts_list(args.export, args.class_token, args.instance_token)
+        logging.info(f'Create concepts list')
+        logging.info(f'dest:{args.export} instance token:{args.instance_token} class_token:{args.class_token}')
+        concepts_list = prepare.create_concepts_list(args.export, args.instance_token, args.class_token)
         conceots_list_filepath = osp.join(args.export, 'concepts_list.json')
         with open(conceots_list_filepath, mode='w') as f:
             json.dump(concepts_list, f, indent=4)

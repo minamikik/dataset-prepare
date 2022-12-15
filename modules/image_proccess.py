@@ -9,26 +9,31 @@ def aspect_calc(img, basesize):
     h, w = img.shape[:2]    
     aspect = w / h
     crop_margin = 16
+    block_size = 128
     if 1 <= aspect:
         np.clip(aspect, 1, 1.5)
 #        logging.info(f'Aspect: {aspect:.2f}')
-        scale_h = basesize + crop_margin
-        crop_h = basesize
-        scale_w = round(basesize * aspect) + crop_margin
-        crop_w = math.floor((scale_w - crop_margin) / 256) * 256
+        new_basesize = round(basesize / aspect)
+    
+        scale_h = new_basesize + crop_margin
+        crop_h = math.floor(new_basesize / block_size) * block_size
+        scale_w = round(new_basesize * aspect) + crop_margin
+        crop_w = math.floor((scale_w - crop_margin) / block_size) * block_size
     else:
 #        logging.info('Aspect is less than 1')
-        np.clip(aspect, 0.6666667, 1)
-        scale_w = basesize + crop_margin
-        crop_w = basesize
-        scale_h = round(basesize / aspect) + crop_margin
-        crop_h = math.floor((scale_h - crop_margin) / 256) * 256
+        np.clip(aspect, 0.666, 1)
+        new_basesize = round(basesize * aspect)
+        scale_w = new_basesize + crop_margin
+        crop_w = math.floor(new_basesize / block_size) * block_size
+        scale_h = round(new_basesize / aspect) + crop_margin
+        crop_h = math.floor((scale_h - crop_margin) / block_size) * block_size
 #        logging.info(f'crop_w: {crop_w}')
     return crop_h, crop_w, scale_h, scale_w
 
 def aspect_crop(img, base_size):
     crop_h, crop_w, scale_h, scale_w = aspect_calc(img, base_size)
-
+    print('debug')
+    print(crop_h, crop_w, scale_h, scale_w)
     scaled_img = cv2.resize(img, dsize=(scale_w, scale_h), interpolation=cv2.INTER_AREA)
 #    logging.info(f'Scaled image shape: {scaled_img.shape}')
 

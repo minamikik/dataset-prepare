@@ -1,5 +1,8 @@
 models/*
 src/*
+env_prepare/*
+cern.bat
+hosts.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

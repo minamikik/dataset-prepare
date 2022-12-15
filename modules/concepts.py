@@ -11,18 +11,20 @@ logging.basicConfig(
 
 
 class CreateConceptsList:
-    def __init__(self, target_dir, instance_token, class_token):
+    def __init__(self, target_dir, instance_token, class_token, sub_token):
         self.target_dir = osp.abspath(target_dir)
         self.instance_token = instance_token
         self.class_token = class_token
+        self.sub_token = sub_token
 
         self.concepts_list = []
     
     def create_concept(self):
         logging.info('CreateConceptsList: Creating concepts list')
         for root, dirs, files in os.walk(self.target_dir):
-            if not 'class' in root:
-                for dir in dirs:
+            for dir in dirs:
+                if not 'class' in dir and not 'class' in root:
+                    logging.info(f'root: {root}, dir: {dir}')
                     instance_dir = osp.join(self.target_dir, dir)
                     class_dir = osp.join(self.target_dir, 'class')
                     sub_class_dir = osp.join(class_dir, dir)
@@ -39,9 +41,9 @@ class CreateConceptsList:
                         "max_steps": -1,
                         "instance_data_dir": instance_dir,
                         "class_data_dir": sub_class_dir,
-                        "instance_prompt": f"{self.class_token}, [filewords]",
-                        "class_prompt": "[filewords]",
-                        "save_sample_prompt": "[filewords]",
+                        "instance_prompt": f"{self.instance_token}, {self.class_token}, [filewords]",
+                        "class_prompt": f"{self.class_token}, [filewords]",
+                        "save_sample_prompt": f"{self.instance_token}, {self.class_token}, {self.sub_token}",
                         "save_sample_template": "",
                         "instance_token": self.instance_token,
                         "class_token": self.class_token,
@@ -51,7 +53,7 @@ class CreateConceptsList:
                         "class_infer_steps": 40,
                         "save_sample_negative_prompt": "",
                         "n_save_sample": 1,
-                        "sample_seed": -1,
+                        "sample_seed": 3333,
                         "save_guidance_scale": 7.5,
                         "save_infer_steps": 40
                     }
@@ -59,5 +61,3 @@ class CreateConceptsList:
                     self.concepts_list.append(concept)
 
         return self.concepts_list
-
-
