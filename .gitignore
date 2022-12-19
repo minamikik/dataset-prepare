@@ -3,7 +3,8 @@ src/*
 env_prepare/*
 cern.bat
 hosts.json
-
+cache/*
+captions_data/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

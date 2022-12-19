@@ -12,8 +12,5 @@ pip install -r requirements.txt
 mkdir models
 mkdir src
 cd src
-git clone https://github.com/yjl450/age-estimation-ldl-pytorch
-rename age-estimation-ldl-pytorch age
-git clone https://github.com/salesforce/BLIP
 git clone https://github.com/JingyunLiang/SwinIR
 git clone https://github.com/waifu-diffusion/aesthetic

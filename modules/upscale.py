@@ -9,8 +9,8 @@ from torch import autocast
 import time
 import math
 
-import modules.esrgan_model as arch
-from modules.swinir_model import SwinIR as net
+import modules.lib.esrgan_model as arch
+from modules.lib.swinir_model import SwinIR as net
 import logging
 
 logging.basicConfig(

@@ -9,11 +9,11 @@ import time
 import math
 import random
 import threading
-from modules.upscaler import ESRGANer, SwinIRer
-from modules.taging import BLIPer, DeepDanbooru
-from modules.age import AgePredictor
-from modules.autocrop import crop_image, Settings
-from modules.image_proccess import aspect_calc, aspect_crop, center_crop, weighted_crop, frame_crop, opencv2pil, pil2opencv
+from modules.upscale.upscale import ESRGANer, SwinIRer
+from modules.tag.tag import BLIPer, DeepDanbooru
+from modules.tag.age_predictor import AgePredictor
+from modules.crop.face_detect_crop import crop_image, Settings
+from modules.crop.crop import aspect_calc, aspect_crop, center_crop, weighted_crop, frame_crop, opencv2pil, pil2opencv
 
 from modules.concepts import CreateConceptsList
 import argparse

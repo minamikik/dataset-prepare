@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": "--source \".\\dataset\\source\\nsfw\\a japanese woman having sex in missionary position\" --model \"ViT-H-14/laion2b_s32b_b79k\" --force"
+        }
+    ]
+}
